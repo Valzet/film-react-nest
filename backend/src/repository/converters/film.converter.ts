@@ -5,7 +5,7 @@ export function scheduleDtoToEntity(dto: ScheduleDto): ScheduleEntity {
   return {
     id: dto.id,
     daytime: dto.daytime,
-    hall: Number(dto.hall),
+    hall: dto.hall,
     rows: dto.rows,
     seats: dto.seats,
     price: dto.price,
@@ -35,7 +35,7 @@ export function scheduleEntityToDto(entity: ScheduleEntity): ScheduleDto {
   return {
     id: entity.id,
     daytime: entity.daytime,
-    hall: String(entity.hall),
+    hall: entity.hall,
     rows: entity.rows,
     seats: entity.seats,
     price: entity.price,
