@@ -1,7 +1,7 @@
 import { FilmDto, ScheduleDto } from '../../films/dto/films.dto';
-import { FilmEntity, ScheduleEntity } from '../mongodb/film.schema';
+import { Film, Schedule } from '../mongodb/film.schema';
 
-export function scheduleDtoToEntity(dto: ScheduleDto): ScheduleEntity {
+export function scheduleDtoToEntity(dto: ScheduleDto): Schedule {
   return {
     id: dto.id,
     daytime: dto.daytime,
@@ -16,7 +16,7 @@ export function scheduleDtoToEntity(dto: ScheduleDto): ScheduleEntity {
 export function filmDtoToEntity(
   dto: FilmDto,
   schedule: ScheduleDto[] = [],
-): FilmEntity {
+): Film {
   return {
     id: dto.id,
     rating: dto.rating,
@@ -31,7 +31,7 @@ export function filmDtoToEntity(
   };
 }
 
-export function scheduleEntityToDto(entity: ScheduleEntity): ScheduleDto {
+export function scheduleEntityToDto(entity: Schedule): ScheduleDto {
   return {
     id: entity.id,
     daytime: entity.daytime,
@@ -43,7 +43,7 @@ export function scheduleEntityToDto(entity: ScheduleEntity): ScheduleDto {
   };
 }
 
-export function filmEntityToDto(entity: FilmEntity): FilmDto {
+export function filmEntityToDto(entity: Film): FilmDto {
   return {
     id: entity.id,
     rating: entity.rating,

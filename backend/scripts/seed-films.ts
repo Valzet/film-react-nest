@@ -2,7 +2,7 @@ import 'dotenv/config';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import mongoose from 'mongoose';
-import { FilmModel } from '../src/repository/mongodb/film.schema';
+import { Film, FilmSchema } from '../src/repository/mongodb/film.schema';
 
 async function seed() {
   const url = process.env.DATABASE_URL ?? 'mongodb://localhost:27017/afisha';
@@ -16,6 +16,7 @@ async function seed() {
     'mongodb_initial_stub.json',
   );
   const films = JSON.parse(fs.readFileSync(stubPath, 'utf-8'));
+  const FilmModel = mongoose.model(Film.name, FilmSchema, 'films');
 
   await FilmModel.deleteMany({});
   await FilmModel.insertMany(films);

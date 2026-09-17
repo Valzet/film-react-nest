@@ -31,38 +31,23 @@ export class OrderService {
       seatsInOrder.add(seatKey);
     }
 
-    for (const ticket of orderDto.tickets) {
-      const isAvailable = await this.filmsRepository.isSeatAvailable(
-        ticket.film,
-        ticket.session,
-        ticket.row,
-        ticket.seat,
-      );
+    const booked = await this.filmsRepository.takeSeats(
+      orderDto.tickets.map((ticket) => ({
+        filmId: ticket.film,
+        sessionId: ticket.session,
+        row: ticket.row,
+        seat: ticket.seat,
+      })),
+    );
 
-      if (!isAvailable) {
-        throw new BadRequestException({ error: 'Seat already taken' });
-      }
+    if (!booked) {
+      throw new BadRequestException({ error: 'Seat already taken' });
     }
 
-    const items = [];
-
-    for (const ticket of orderDto.tickets) {
-      const isTaken = await this.filmsRepository.takeSeat(
-        ticket.film,
-        ticket.session,
-        ticket.row,
-        ticket.seat,
-      );
-
-      if (!isTaken) {
-        throw new BadRequestException({ error: 'Seat already taken' });
-      }
-
-      items.push({
-        ...ticket,
-        id: randomUUID(),
-      });
-    }
+    const items = orderDto.tickets.map((ticket) => ({
+      ...ticket,
+      id: randomUUID(),
+    }));
 
     return { total: items.length, items };
   }
