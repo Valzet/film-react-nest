@@ -24,9 +24,7 @@ export class RepositoryModule {
           MongooseModule.forRootAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService) => ({
-              uri:
-                config.get<string>('DATABASE_MONGODB_URL') ??
-                config.getOrThrow<string>('DATABASE_URL'),
+              uri: config.getOrThrow<string>('DATABASE_URL'),
             }),
           }),
           MongooseModule.forFeature([
