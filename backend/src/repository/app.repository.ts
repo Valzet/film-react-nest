@@ -9,7 +9,6 @@ import {
 } from './converters/film.converter';
 import { Film } from '../films/entities/film.entity';
 import { Schedule } from '../films/entities/schedule.entity';
-import { commaSeparatedTransformer } from '../films/entities/comma-separated.transformer';
 import { AppErrors } from '../common/errors';
 
 class SeatConflictError extends Error {
@@ -143,8 +142,6 @@ export class AppRepository implements FilmsRepository {
   }
 
   private getTakenSeats(schedule: Schedule): string[] {
-    return Array.isArray(schedule.taken)
-      ? schedule.taken
-      : commaSeparatedTransformer.from(schedule.taken);
+    return schedule.taken ?? [];
   }
 }

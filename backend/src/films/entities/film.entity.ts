@@ -1,6 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Schedule } from './schedule.entity';
-import { commaSeparatedTransformer } from './comma-separated.transformer';
 
 @Entity('films')
 export class Film {
@@ -13,10 +12,7 @@ export class Film {
   @Column()
   director: string;
 
-  @Column({
-    type: 'text',
-    transformer: commaSeparatedTransformer,
-  })
+  @Column('simple-array')
   tags: string[];
 
   @Column()

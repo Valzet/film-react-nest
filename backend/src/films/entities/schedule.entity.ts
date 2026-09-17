@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Film } from './film.entity';
-import { commaSeparatedTransformer } from './comma-separated.transformer';
 
 @Entity('schedules')
 export class Schedule {
@@ -28,10 +27,7 @@ export class Schedule {
   @Column('double precision')
   price: number;
 
-  @Column({
-    type: 'text',
-    transformer: commaSeparatedTransformer,
-  })
+  @Column('simple-array')
   taken: string[];
 
   @Column({ type: 'uuid', nullable: true })
