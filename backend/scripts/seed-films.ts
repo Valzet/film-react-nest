@@ -16,10 +16,10 @@ async function seed() {
     'mongodb_initial_stub.json',
   );
   const films = JSON.parse(fs.readFileSync(stubPath, 'utf-8'));
-  const FilmModel = mongoose.model(Film.name, FilmSchema, 'films');
+  const filmModel = mongoose.model(Film.name, FilmSchema, 'films');
 
-  await FilmModel.deleteMany({});
-  await FilmModel.insertMany(films);
+  await filmModel.deleteMany({});
+  await filmModel.insertMany(films);
 
   console.log(`Imported ${films.length} films into ${url}`);
 

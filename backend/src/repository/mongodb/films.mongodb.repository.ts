@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Connection, Model } from 'mongoose';
-import { FilmsRepository, SeatToBook } from '../films.repository';
+import { FilmsRepository } from '../films.repository';
 import {
   filmEntityToDto,
   scheduleEntityToDto,
 } from '../converters/film.converter';
 import { Film, FilmDocument } from './film.schema';
 
-type SeatGroup = {
+type SeatToBook = {
   filmId: string;
   sessionId: string;
-  seatKeys: string[];
+  row: number;
+  seat: number;
 };
 
 @Injectable()
@@ -30,7 +31,7 @@ export class FilmsMongoRepository implements FilmsRepository {
     const film = await this.filmModel.findOne({ id: filmId }).lean().exec();
 
     if (!film) {
-      return null;
+      throw new NotFoundException('Film not found');
     }
 
     return (film.schedule ?? []).map(scheduleEntityToDto);
@@ -41,14 +42,19 @@ export class FilmsMongoRepository implements FilmsRepository {
       return true;
     }
 
-    const groups = this.groupSeats(seats);
     const session = await this.connection.startSession();
 
     try {
       session.startTransaction();
 
-      for (const group of groups) {
-        const taken = await this.takeSeatGroup(group, session);
+      for (const seat of seats) {
+        const taken = await this.takeSeat(
+          seat.filmId,
+          seat.sessionId,
+          seat.row,
+          seat.seat,
+          session,
+        );
 
         if (!taken) {
           await session.abortTransaction();
@@ -64,7 +70,7 @@ export class FilmsMongoRepository implements FilmsRepository {
       }
 
       if (this.isTransactionUnsupported(error)) {
-        return this.takeSeatGroupsWithRollback(groups);
+        return this.takeSeatsWithRollback(seats);
       }
 
       throw error;
@@ -73,67 +79,29 @@ export class FilmsMongoRepository implements FilmsRepository {
     }
   }
 
-  private groupSeats(seats: SeatToBook[]): SeatGroup[] {
-    const groups = new Map<string, SeatGroup>();
-
-    for (const seat of seats) {
-      const groupKey = `${seat.filmId}:${seat.sessionId}`;
-      const seatKey = `${seat.row}:${seat.seat}`;
-      const existing = groups.get(groupKey);
-
-      if (existing) {
-        existing.seatKeys.push(seatKey);
-      } else {
-        groups.set(groupKey, {
-          filmId: seat.filmId,
-          sessionId: seat.sessionId,
-          seatKeys: [seatKey],
-        });
-      }
-    }
-
-    return [...groups.values()];
-  }
-
-  private async takeSeatGroupsWithRollback(
-    groups: SeatGroup[],
-  ): Promise<boolean> {
-    const reserved: SeatGroup[] = [];
-
-    for (const group of groups) {
-      const taken = await this.takeSeatGroup(group);
-
-      if (!taken) {
-        await Promise.all(
-          reserved.map((reservedGroup) => this.releaseSeatGroup(reservedGroup)),
-        );
-        return false;
-      }
-
-      reserved.push(group);
-    }
-
-    return true;
-  }
-
-  private async takeSeatGroup(
-    group: SeatGroup,
+  async takeSeat(
+    filmId: string,
+    sessionId: string,
+    row: number,
+    seat: number,
     session?: ClientSession,
   ): Promise<boolean> {
+    const seatKey = `${row}:${seat}`;
+
     const result = await this.filmModel
       .updateOne(
         {
-          id: group.filmId,
+          id: filmId,
           schedule: {
             $elemMatch: {
-              id: group.sessionId,
-              taken: { $nin: group.seatKeys },
+              id: sessionId,
+              taken: { $nin: [seatKey] },
             },
           },
         },
-        { $addToSet: { 'schedule.$[s].taken': { $each: group.seatKeys } } },
+        { $addToSet: { 'schedule.$[s].taken': seatKey } },
         {
-          arrayFilters: [{ 's.id': group.sessionId }],
+          arrayFilters: [{ 's.id': sessionId }],
           ...(session ? { session } : {}),
         },
       )
@@ -142,14 +110,50 @@ export class FilmsMongoRepository implements FilmsRepository {
     return result.modifiedCount > 0;
   }
 
-  private async releaseSeatGroup(group: SeatGroup): Promise<void> {
+  async releaseSeat(
+    filmId: string,
+    sessionId: string,
+    row: number,
+    seat: number,
+  ): Promise<void> {
+    const seatKey = `${row}:${seat}`;
+
     await this.filmModel
       .updateOne(
-        { id: group.filmId, 'schedule.id': group.sessionId },
-        { $pullAll: { 'schedule.$[s].taken': group.seatKeys } },
-        { arrayFilters: [{ 's.id': group.sessionId }] },
+        { id: filmId, 'schedule.id': sessionId },
+        { $pull: { 'schedule.$[s].taken': seatKey } },
+        { arrayFilters: [{ 's.id': sessionId }] },
       )
       .exec();
+  }
+
+  private async takeSeatsWithRollback(seats: SeatToBook[]): Promise<boolean> {
+    const reserved: SeatToBook[] = [];
+
+    for (const seat of seats) {
+      const taken = await this.takeSeat(
+        seat.filmId,
+        seat.sessionId,
+        seat.row,
+        seat.seat,
+      );
+
+      if (!taken) {
+        for (const item of reserved) {
+          await this.releaseSeat(
+            item.filmId,
+            item.sessionId,
+            item.row,
+            item.seat,
+          );
+        }
+        return false;
+      }
+
+      reserved.push(seat);
+    }
+
+    return true;
   }
 
   private isTransactionUnsupported(error: unknown): boolean {

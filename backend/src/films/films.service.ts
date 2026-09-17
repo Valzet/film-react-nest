@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { FilmListResponseDto, ScheduleListResponseDto } from './dto/films.dto';
 import {
   FILMS_REPOSITORY,
@@ -19,11 +19,6 @@ export class FilmsService {
 
   async getSchedule(id: string): Promise<ScheduleListResponseDto> {
     const items = await this.filmsRepository.findScheduleByFilmId(id);
-
-    if (items === null) {
-      throw new NotFoundException('Film not found');
-    }
-
     return { total: items.length, items };
   }
 }

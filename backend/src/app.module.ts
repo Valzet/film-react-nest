@@ -23,9 +23,7 @@ import { Film, FilmSchema } from './repository/mongodb/film.schema';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri:
-          config.get<string>('DATABASE_URL') ??
-          'mongodb://localhost:27017/afisha',
+        uri: config.get('DATABASE_URL') ?? 'mongodb://localhost:27017/afisha',
       }),
     }),
     MongooseModule.forFeature([{ name: Film.name, schema: FilmSchema }]),
