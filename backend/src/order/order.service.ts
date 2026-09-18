@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { CreateOrderDto, OrderResponseDto } from './dto/order.dto';
+import { AppErrors } from '../common/errors';
 import {
   FILMS_REPOSITORY,
   FilmsRepository,
@@ -25,7 +26,7 @@ export class OrderService {
       );
 
       if (seatsInOrder.has(seatKey)) {
-        throw new BadRequestException({ error: 'Seat already taken' });
+        throw new BadRequestException({ error: AppErrors.SEAT_ALREADY_TAKEN });
       }
 
       seatsInOrder.add(seatKey);
@@ -41,7 +42,7 @@ export class OrderService {
     );
 
     if (!booked) {
-      throw new BadRequestException({ error: 'Seat already taken' });
+      throw new BadRequestException({ error: AppErrors.SEAT_ALREADY_TAKEN });
     }
 
     const items = orderDto.tickets.map((ticket) => ({
