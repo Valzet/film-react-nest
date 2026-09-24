@@ -7,14 +7,14 @@ describe('TskvLogger', () => {
     logger = new TskvLogger();
   });
 
-  it('formatMessage -> TSKV line', () => {
+  it('formatMessage is TSKV', () => {
     const line = logger.formatMessage('log', 'hello');
 
     expect(line.endsWith('\n')).toBe(true);
     expect(line).toMatch(/^level=log\tmessage=hello\n$/);
   });
 
-  it('log() -> stdout.write', () => {
+  it('log to stdout', () => {
     const spy = jest
       .spyOn(process.stdout, 'write')
       .mockImplementation(() => true);

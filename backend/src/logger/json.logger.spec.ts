@@ -7,7 +7,7 @@ describe('JsonLogger', () => {
     logger = new JsonLogger();
   });
 
-  it('formatMessage -> JSON with level, message, optionalParams', () => {
+  it('formatMessage is JSON', () => {
     const parsed = JSON.parse(logger.formatMessage('log', 'hello', 'ctx'));
 
     expect(parsed).toEqual({
@@ -17,7 +17,7 @@ describe('JsonLogger', () => {
     });
   });
 
-  it('log() -> console.log', () => {
+  it('log to console.log', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
     logger.log('hi');
