@@ -1,6 +1,7 @@
 services:
   frontend:
     image: ghcr.io/valzet/film-frontend
+    restart: unless-stopped
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -11,6 +12,7 @@ services:
 
   backend:
     image: ghcr.io/valzet/film-backend
+    restart: unless-stopped
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -28,6 +30,7 @@ services:
 
   nginx:
     image: ghcr.io/valzet/film-nginx
+    restart: unless-stopped
     build:
       context: ./nginx
       dockerfile: Dockerfile
@@ -43,6 +46,7 @@ services:
 
   postgres:
     image: postgres:17
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -54,11 +58,12 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
