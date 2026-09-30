@@ -19,12 +19,12 @@ services:
     depends_on:
       - postgres
     environment:
-      PORT: "3000"
-      DATABASE_DRIVER: postgres
-      DATABASE_URL: postgresql://postgres:5432/${POSTGRES_DB}
-      DATABASE_USERNAME: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_MONGODB_URL: mongodb://localhost:27017/practicum
+      PORT: ${PORT}
+      DATABASE_DRIVER: ${DATABASE_DRIVER}
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_MONGODB_URL: ${DATABASE_MONGODB_URL}
     networks:
       - film-network
 
